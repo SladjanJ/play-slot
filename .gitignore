@@ -1,0 +1,213 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# ─── Dependencies ───
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ─── Testing ───
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/.playwright/
+*.lcov
+
+# ─── Next.js / build ───
+/.next/
+/out/
+/build
+/dist
+/.turbo
+/.swc
+
+# ─── Production / deploy ───
+.vercel
+.netlify
+.firebase/
+.firebaserc.local
+.wrangler/
+.dev.vars
+wrangler.toml.local
+
+# ─── Environment & secrets (NEVER commit) ───
+.env
+.env.*
+.env*.local
+.envrc
+.env.backup
+.env.production
+.env.staging
+.env.development
+.env.test
+!.env.example
+!.env.template
+!.env.sample
+
+# ─── API keys, tokens, certificates ───
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.jks
+*.keystore
+*.mobileprovision
+*.provisionprofile
+auth.json
+token.json
+tokens.json
+credentials.json
+credentials*.json
+secrets.json
+secrets*.json
+secret.json
+service-account*.json
+*-credentials.json
+*-service-account.json
+google-services.json
+GoogleService-Info.plist
+firebase-adminsdk*.json
+.aws/
+.aws/credentials
+.gcloud/
+.gcp/
+*.secret
+*.secrets
+*.token
+*.tokens
+apikey.txt
+api-key.txt
+api_keys.txt
+
+# ─── SSH & auth (personal access) ───
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+id_dsa
+*.ppk
+.ssh/
+.netrc
+.npmrc
+.yarnrc.yml.local
+.pypirc
+.htpasswd
+
+# ─── Supabase (local dev may contain tokens / DB passwords) ───
+.supabase/
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+supabase/.env.*
+supabase/seed.local.sql
+supabase/seed.local.*
+**/supabase/.env.local
+
+# ─── Local databases & dumps (real user/data backups) ───
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sql.gz
+*.dump
+*.backup
+/backups/
+/dumps/
+/database/
+
+# ─── Logs (may contain tokens, emails, IPs) ───
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+
+# ─── Sensitive project folders ───
+/secrets/
+/private/
+/credentials/
+/.secrets/
+**/*secret*/
+**/*credentials*/
+
+# ─── IDE / editor (local config may embed tokens) ───
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+*.code-workspace
+.cursor/mcp.json
+.cursor/*.local.json
+*.swp
+*.swo
+*~
+
+# ─── OS files ───
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ─── Misc temp / cache ───
+*.bak
+*.tmp
+*.temp
+*.cache
+.cache/
+.temp/
+tmp/
+temp/
+*.tsbuildinfo
+next-env.d.ts
+
+# ─── Docker (local overrides often hold secrets) ───
+docker-compose.override.yml
+docker-compose.local.yml
+docker-compose.*.local.yml
+.docker/config.json
+
+# ─── Sentry / monitoring (auth tokens in local config) ───
+.sentryclirc
+sentry.properties.local
+
+# ─── Stripe / payment test keys (if saved locally) ───
+stripe.env
+.stripe/
+
+# ─── Misc cloud CLI state ───
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+.pulumi/
+
+# ─── Certificate signing requests (paired with private keys) ───
+*.csr
+
+# ─── Encrypted env / key stores ───
+*.enc
+*.encrypted
+.secrets.baseline
+
+# ─── Local SSL (dev HTTPS) ───
+*.pem.local
+localhost.pem
+localhost-key.pem
+/certs/
+/ssl/

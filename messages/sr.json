@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "title": "PlaySlot",
+    "description": "Online rezervacije fudbalskih terena — brzo, jednostavno i pouzdano za igrače i vlasnike terena."
+  },
+  "common": {
+    "appName": "PlaySlot",
+    "register": "Registracija",
+    "login": "Prijava",
+    "backToHome": "Nazad na početnu"
+  },
+  "language": {
+    "title": "Odaberite jezik",
+    "description": "Na kojem jeziku želite da koristite PlaySlot?",
+    "continueSr": "Nastavite na srpskom",
+    "continueEn": "Continue in English",
+    "sr": "Srpski",
+    "en": "English"
+  },
+  "landing": {
+    "title": "PlaySlot — online rezervacije fudbalskih terena",
+    "subtitle": "Rezervišite termine brzo i jednostavno. Pronađite teren u svom gradu, pregledajte slobodne slotove i potvrdite rezervaciju u par koraka. Vlasnici terena upravljaju kalendarom, cijenama i potvrđivanjem — sve na jednom mjestu.",
+    "register": "Registracija",
+    "login": "Prijava"
+  },
+  "placeholder": {
+    "registerTitle": "Registracija uskoro dolazi",
+    "registerDescription": "Radimo na registraciji naloga. Uskoro ćete moći da kreirate PlaySlot profil kao igrač ili vlasnik terena.",
+    "loginTitle": "Prijava uskoro dolazi",
+    "loginDescription": "Radimo na prijavi na nalog. Uskoro ćete moći da se prijavite i nastavite sa rezervacijama."
+  },
+  "footer": {
+    "copyright": "© {year} PlaySlot"
+  }
+}

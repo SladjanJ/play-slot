@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "title": "PlaySlot",
+    "description": "Book football pitches online — fast, simple, and reliable for players and pitch owners."
+  },
+  "common": {
+    "appName": "PlaySlot",
+    "register": "Register",
+    "login": "Log in",
+    "backToHome": "Back to home"
+  },
+  "language": {
+    "title": "Choose your language",
+    "description": "Which language would you like to use PlaySlot in?",
+    "continueSr": "Nastavite na srpskom",
+    "continueEn": "Continue in English",
+    "sr": "Srpski",
+    "en": "English"
+  },
+  "landing": {
+    "title": "PlaySlot — book football pitches online",
+    "subtitle": "Book your slots quickly and easily. Find a pitch in your city, browse available time slots, and confirm your booking in just a few steps. Pitch owners manage their calendar, pricing, and confirmations — all in one place.",
+    "register": "Register",
+    "login": "Log in"
+  },
+  "placeholder": {
+    "registerTitle": "Registration coming soon",
+    "registerDescription": "We are building account registration. Soon you will be able to create a PlaySlot profile as a player or pitch owner.",
+    "loginTitle": "Log in coming soon",
+    "loginDescription": "We are building the sign-in flow. Soon you will be able to log in and continue with your bookings."
+  },
+  "footer": {
+    "copyright": "© {year} PlaySlot"
+  }
+}

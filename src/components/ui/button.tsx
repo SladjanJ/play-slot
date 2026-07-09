@@ -40,6 +40,7 @@ const buttonVariants = cva(
   }
 )
 
+/** Use ButtonLink for navigation — never `render={<Link />}` (Base UI nativeButton warning). */
 function Button({
   className,
   variant = "default",

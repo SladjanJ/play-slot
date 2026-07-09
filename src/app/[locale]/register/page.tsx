@@ -1,29 +1,22 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 
-import { Link } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
+import { RegisterForm } from "@/components/auth/register-form";
+import { getCountriesAndCities } from "@/lib/data/locations";
 
-type PlaceholderPageProps = {
+type RegisterPageProps = {
   params: Promise<{ locale: string }>;
 };
 
-export default async function RegisterPage({ params }: PlaceholderPageProps) {
+export default async function RegisterPage({ params }: RegisterPageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const t = await getTranslations("placeholder");
-  const tCommon = await getTranslations("common");
+  const { countries, cities } = await getCountriesAndCities();
 
   return (
     <section className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
-      <div className="w-full max-w-lg rounded-3xl border border-border/60 bg-card/75 p-8 text-center shadow-lg backdrop-blur-md sm:p-10">
-        <h1 className="font-heading text-2xl font-semibold sm:text-3xl">
-          {t("registerTitle")}
-        </h1>
-        <p className="mt-4 text-muted-foreground">{t("registerDescription")}</p>
-        <Button render={<Link href="/" />} className="mt-8" variant="outline">
-          {tCommon("backToHome")}
-        </Button>
+      <div className="w-full max-w-md">
+        <RegisterForm locale={locale} countries={countries} cities={cities} />
       </div>
     </section>
   );

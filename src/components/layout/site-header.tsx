@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Menu01Icon } from "@hugeicons/core-free-icons";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { Link } from "@/i18n/navigation";
 import { PlaySlotLogo } from "@/components/layout/playslot-logo";
 import { Button } from "@/components/ui/button";
@@ -16,9 +17,67 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-export function SiteHeader() {
+type SiteHeaderProps = {
+  locale: string;
+  user?: { firstName: string } | null;
+};
+
+export function SiteHeader({ locale, user }: SiteHeaderProps) {
   const t = useTranslations("common");
   const [open, setOpen] = useState(false);
+  const isAuthenticated = Boolean(user);
+
+  const authNavDesktop = isAuthenticated ? (
+    <div className="flex items-center gap-4">
+      {user?.firstName ? (
+        <span className="hidden text-sm text-muted-foreground lg:inline">
+          {user.firstName}
+        </span>
+      ) : null}
+      <LogoutButton locale={locale} variant="outline" className="h-9 px-4" />
+    </div>
+  ) : (
+    <>
+      <Link
+        href="/register"
+        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {t("register")}
+      </Link>
+      <Link
+        href="/login"
+        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {t("login")}
+      </Link>
+    </>
+  );
+
+  const authNavMobile = isAuthenticated ? (
+    <div className="flex flex-col gap-2 px-4">
+      {user?.firstName ? (
+        <p className="px-3 py-2 text-sm text-muted-foreground">{user.firstName}</p>
+      ) : null}
+      <LogoutButton locale={locale} variant="outline" className="h-10 w-full" />
+    </div>
+  ) : (
+    <nav className="flex flex-col gap-2 px-4">
+      <Link
+        href="/register"
+        onClick={() => setOpen(false)}
+        className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+      >
+        {t("register")}
+      </Link>
+      <Link
+        href="/login"
+        onClick={() => setOpen(false)}
+        className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+      >
+        {t("login")}
+      </Link>
+    </nav>
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
@@ -36,20 +95,7 @@ export function SiteHeader() {
           </span>
         </div>
 
-        <nav className="hidden items-center gap-6 md:flex">
-          <Link
-            href="/register"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t("register")}
-          </Link>
-          <Link
-            href="/login"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t("login")}
-          </Link>
-        </nav>
+        <nav className="hidden items-center gap-6 md:flex">{authNavDesktop}</nav>
 
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger
@@ -68,22 +114,7 @@ export function SiteHeader() {
             <SheetHeader>
               <SheetTitle>{t("appName")}</SheetTitle>
             </SheetHeader>
-            <nav className="flex flex-col gap-2 px-4">
-              <Link
-                href="/register"
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-              >
-                {t("register")}
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-              >
-                {t("login")}
-              </Link>
-            </nav>
+            {authNavMobile}
           </SheetContent>
         </Sheet>
       </div>

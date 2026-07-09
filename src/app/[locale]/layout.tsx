@@ -5,7 +5,7 @@ import { hasLocale } from "next-intl";
 
 import { LocaleHtmlLang } from "@/components/layout/locale-html-lang";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { SiteHeader } from "@/components/layout/site-header";
+import { SiteHeaderWrapper } from "@/components/layout/site-header-wrapper";
 import { LanguagePopup } from "@/components/layout/language-popup";
 import { routing } from "@/i18n/routing";
 
@@ -54,7 +54,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleHtmlLang />
       <div className="landing-page flex min-h-full flex-col">
-        <SiteHeader />
+        <SiteHeaderWrapper locale={locale} />
         <main className="flex flex-1 flex-col">{children}</main>
         <SiteFooter />
         <LanguagePopup />

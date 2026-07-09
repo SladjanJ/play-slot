@@ -22,4 +22,15 @@ Before starting **any** new feature, bugfix, or refactor, read and analyze these
 - Do not change architecture decisions without updating `Tech.md`
 - Match existing conventions: Next.js App Router, Supabase RLS, shadcn/ui
 - MVP scope: no online payments, no admin panel, no reviews, football only
+
+## UI components (Base UI / shadcn)
+
+| Situation | Use | Never |
+|-----------|-----|-------|
+| Navigation that looks like a button | `ButtonLink` from `@/components/ui/button-link` | `Button render={<Link />}` |
+| Form submit / action | `Button type="submit"` | `ButtonLink` for submit |
+| Dialog/Sheet trigger or close | `render={<Button />}` on Base UI primitive | `Button render={<Link />}` |
+| Plain text link | `Link` from `@/i18n/navigation` | — |
+
+Before finishing any UI task, grep for `render={<Link` inside `Button` usage — must be zero matches. Fix the root cause; do not suppress dev overlay warnings.
 <!-- END:playslot-project-rules -->

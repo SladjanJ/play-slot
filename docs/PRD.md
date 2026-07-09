@@ -59,6 +59,12 @@ PlaySlot je web aplikacija za online rezervaciju fudbalskih termina. Cilj je ola
 5. Kratka landing stranica: naslov, opis teme, **Register** i **Login**
 6. Header sadrži **search bar** (Player flow)
 
+**Header auth stanje:**
+
+- **Gost:** Register + Login u headeru
+- **Ulogovan korisnik:** samo **Logout** (Register/Login sakriveni)
+- Landing hero sakriva Register/Login kad je korisnik prijavljen
+
 **Rute:** `/sr`, `/en` (marketing/landing only)
 
 ### 4.2 Registration
@@ -81,12 +87,15 @@ PlaySlot je web aplikacija za online rezervaciju fudbalskih termina. Cilj je ola
 
 ### 4.3 Email Verification
 
-1. Nakon Register → stranica **„Provjeri email"**
+1. Nakon Register → stranica **„Provjeri email"** (email u URL-u ako nema session)
 2. Korisnik klikne link u emailu
-3. Vraća se na istu stranicu
+3. Vraća se na verify stranicu
 4. Klik **Refresh** → provjera session-a → redirect:
-   - **Player** → landing (`/`) sa headerom i search-om
+   - **Player** → landing (`/`) sa headerom
    - **Host** → `/host/setup` wizard
+5. Dugme **„Pošalji email ponovo"** (`auth.resend`) za ponovno slanje
+
+**Supabase localhost:** Site URL `http://localhost:3000`, Redirect URLs uključuju `/auth/callback`
 
 **Pravilo:** Dok email nije verified, nema pristupa aplikaciji.
 

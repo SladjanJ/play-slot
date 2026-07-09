@@ -1,7 +1,7 @@
 # PlaySlot — Technical Architecture
 
 > **Version:** 1.0 (MVP)  
-> **Last updated:** 2026-07-05
+> **Last updated:** 2026-07-09
 
 ## 1. Stack
 
@@ -63,13 +63,16 @@ src/
 - Jezik app ruta: cookie / localStorage (postavljen na landing-u)
 - Auto-detect: `Accept-Language` browser header na prvom posjetu
 
-### Middleware (`middleware.ts`)
+### Middleware (`src/proxy.ts`)
 
-1. Locale detection za `/[locale]/*`
-2. Auth guard: unauthenticated → `/login`
-3. Email unverified → `/verify-email`
-4. Host without published venue → `/host/setup`
-5. Role guard: Player ≠ `/host/*`, Host ≠ player booking routes
+Next.js 16 uses `proxy.ts` (replaces deprecated `middleware.ts`).
+
+1. Locale detection via next-intl for `/[locale]/*`
+2. Supabase `updateSession` (session refresh + auth guards)
+3. Auth guard: unauthenticated → `/login`
+4. Email unverified → `/verify-email`
+5. Host without published venue → `/host/setup`
+6. Role guard: Player ≠ `/host/*`, Host ≠ player booking routes
 
 ---
 
@@ -235,7 +238,22 @@ All validate via RLS + server-side business rules (5h cancel, max slots, etc.).
 
 ---
 
-## 15. Future Technical Considerations
+## 15. UI Conventions (Base UI / shadcn)
+
+Stack: shadcn-style components built on `@base-ui/react`.
+
+**Button-styled navigation:** use [`ButtonLink`](../src/components/ui/button-link.tsx) — a `Link` with `buttonVariants` classes. Never `Button render={<Link />}`: Base UI `Button` defaults to `nativeButton={true}` and expects a `<button>`, which triggers dev warnings and hurts accessibility when a link is rendered instead.
+
+| Situation | Component |
+|-----------|-----------|
+| Link that looks like a button | `ButtonLink` |
+| Form submit / onClick action | `Button` |
+| Dialog/Sheet close or trigger | Base UI primitive with `render={<Button />}` |
+| Inline text link | `Link` |
+
+---
+
+## 16. Future Technical Considerations
 
 - Stripe / payment webhooks
 - Multi-sport: `sport_type` enum on venues

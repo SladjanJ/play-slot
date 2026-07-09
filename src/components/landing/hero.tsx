@@ -1,10 +1,14 @@
 import { useTranslations } from "next-intl";
 
-import { Link } from "@/i18n/navigation";
 import { PlaySlotLogo } from "@/components/layout/playslot-logo";
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 
-export function LandingHero() {
+type LandingHeroProps = {
+  isAuthenticated?: boolean;
+  userName?: string;
+};
+
+export function LandingHero({ isAuthenticated, userName }: LandingHeroProps) {
   const t = useTranslations("landing");
   const tCommon = useTranslations("common");
 
@@ -26,23 +30,40 @@ export function LandingHero() {
             {t("subtitle")}
           </p>
 
-          <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
-            <Button
-              render={<Link href="/register" />}
-              size="lg"
-              className="h-11 min-w-[180px] px-6 text-base"
-            >
-              {t("register")}
-            </Button>
-            <Button
-              render={<Link href="/login" />}
-              variant="outline"
-              size="lg"
-              className="h-11 min-w-[180px] px-6 text-base"
-            >
-              {t("login")}
-            </Button>
-          </div>
+          {isAuthenticated ? (
+            <div className="flex flex-col items-center justify-center gap-3 pt-2">
+              {userName ? (
+                <p className="text-base text-muted-foreground">
+                  {t("welcomeBack", { name: userName })}
+                </p>
+              ) : null}
+              <ButtonLink
+                href="/search"
+                size="lg"
+                className="h-11 min-w-[180px] px-6 text-base"
+              >
+                {t("goToSearch")}
+              </ButtonLink>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+              <ButtonLink
+                href="/register"
+                size="lg"
+                className="h-11 min-w-[180px] px-6 text-base"
+              >
+                {t("register")}
+              </ButtonLink>
+              <ButtonLink
+                href="/login"
+                variant="outline"
+                size="lg"
+                className="h-11 min-w-[180px] px-6 text-base"
+              >
+                {t("login")}
+              </ButtonLink>
+            </div>
+          )}
         </div>
 
         <p className="mt-8 text-center text-xs text-muted-foreground sm:hidden">

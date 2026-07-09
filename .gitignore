@@ -147,8 +147,11 @@ lerna-debug.log*
 .vscode/settings.json
 .vscode/launch.json
 *.code-workspace
+.cursor/
 .cursor/mcp.json
 .cursor/*.local.json
+.agents/
+skills-lock.json
 *.swp
 *.swo
 *~

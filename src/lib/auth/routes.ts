@@ -39,6 +39,20 @@ export function isProtectedPath(pathname: string): boolean {
   return isPlayerPath(pathname) || isHostPath(pathname);
 }
 
+/** App routes live outside `/[locale]` and must not get a locale prefix. */
+export function isAppRoute(pathname: string): boolean {
+  return isProtectedPath(pathname);
+}
+
+/** `/en/host/setup` → `/host/setup` when locale was wrongly prefixed. */
+export function stripLocalePrefixedAppRoute(pathname: string): string | null {
+  const match = pathname.match(/^\/(sr|en)(\/.*)$/);
+  if (!match) return null;
+
+  const stripped = match[2];
+  return isAppRoute(stripped) ? stripped : null;
+}
+
 export function loginPath(locale: AppLocale): string {
   return `/${locale}/login`;
 }

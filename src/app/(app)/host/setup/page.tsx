@@ -1,16 +1,16 @@
-import { getTranslations } from "next-intl/server";
+import { getHostSetupContext } from "@/lib/data/host-setup";
+import { HostSetupWizard } from "@/components/host/setup-wizard";
 
 export default async function HostSetupPage() {
-  const t = await getTranslations("app");
+  const { initialData, countries, cities } = await getHostSetupContext();
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-4 py-16 sm:px-6">
-      <div className="rounded-3xl border border-border/60 bg-card/75 p-8 text-center shadow-lg backdrop-blur-md sm:p-10">
-        <h1 className="font-heading text-2xl font-semibold sm:text-3xl">
-          {t("hostSetupTitle")}
-        </h1>
-        <p className="mt-4 text-muted-foreground">{t("hostSetupDescription")}</p>
-      </div>
+    <section className="flex flex-1 flex-col px-4 py-10 sm:px-6 sm:py-16">
+      <HostSetupWizard
+        initialData={initialData}
+        countries={countries}
+        cities={cities}
+      />
     </section>
   );
 }

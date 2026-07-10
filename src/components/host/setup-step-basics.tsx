@@ -15,13 +15,18 @@ type SetupStepBasicsProps = {
   value: Pick<
     PublishVenueInput,
     "companyName" | "countryId" | "cityId" | "timezone"
-  >;
+  > & {
+    phone?: string;
+  };
   countries: CountryOption[];
   cities: CityOption[];
   errors?: Record<string, string>;
+  showContactPhone?: boolean;
   onChange: (
     patch: Partial<
-      Pick<PublishVenueInput, "companyName" | "countryId" | "cityId" | "timezone">
+      Pick<PublishVenueInput, "companyName" | "countryId" | "cityId" | "timezone"> & {
+        phone?: string;
+      }
     >,
   ) => void;
 };
@@ -31,9 +36,11 @@ export function SetupStepBasics({
   countries,
   cities,
   errors,
+  showContactPhone = false,
   onChange,
 }: SetupStepBasicsProps) {
   const t = useTranslations("host.setup");
+  const tSettings = useTranslations("host.settings");
   const appLocale = useLocale();
 
   const filteredCities = useMemo(
@@ -111,6 +118,24 @@ export function SetupStepBasics({
         </Select>
         <FieldError message={errors?.timezone} />
       </div>
+
+      {showContactPhone ? (
+        <div className="space-y-2">
+          <Label htmlFor="contactPhone">{tSettings("contactPhone")}</Label>
+          <Input
+            id="contactPhone"
+            type="tel"
+            autoComplete="tel"
+            value={value.phone ?? ""}
+            onChange={(e) => onChange({ phone: e.target.value })}
+            aria-invalid={Boolean(errors?.phone)}
+          />
+          <p className="text-xs text-muted-foreground">
+            {tSettings("contactPhoneHint")}
+          </p>
+          <FieldError message={errors?.phone} />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -8,9 +8,10 @@ import { currencyForCountryCode } from "@/lib/host/currency";
 import type { PublishVenueInput } from "@/lib/host/validation";
 
 type SetupStepReviewProps = {
-  value: PublishVenueInput;
+  value: PublishVenueInput & { phone?: string };
   countries: CountryOption[];
   cities: CityOption[];
+  showContactPhone?: boolean;
 };
 
 function ReviewRow({ label, value }: { label: string; value: string }) {
@@ -28,8 +29,10 @@ export function SetupStepReview({
   value,
   countries,
   cities,
+  showContactPhone = false,
 }: SetupStepReviewProps) {
   const t = useTranslations("host.setup");
+  const tSettings = useTranslations("host.settings");
   const appLocale = useLocale();
 
   const country = countries.find((item) => item.id === value.countryId);
@@ -98,6 +101,12 @@ export function SetupStepReview({
               : t("confirmationPending")
           }
         />
+        {showContactPhone ? (
+          <ReviewRow
+            label={tSettings("contactPhone")}
+            value={value.phone?.trim() ? value.phone : tSettings("notProvided")}
+          />
+        ) : null}
       </dl>
     </div>
   );

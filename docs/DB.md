@@ -230,7 +230,7 @@ Auto-update `updated_at` on profiles, venues, bookings.
 
 | Table | Policy |
 |-------|--------|
-| profiles | Users read/update self |
+| profiles | Users read/update self; host read players with bookings on own venue; player read host of published venue |
 | countries | Public read |
 | cities | Public read |
 | venues | Public read published; host CRUD own |

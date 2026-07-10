@@ -236,6 +236,11 @@ export function VenueBookingPanel({
           {venue.address ? (
             <p className="text-sm text-muted-foreground">{venue.address}</p>
           ) : null}
+          {venue.host_phone ? (
+            <p className="text-sm text-muted-foreground">
+              {t("contactPhone", { phone: venue.host_phone })}
+            </p>
+          ) : null}
           <p className="text-sm font-medium">
             {t("pricePerSlot", {
               price: formatPrice(

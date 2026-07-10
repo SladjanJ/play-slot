@@ -101,7 +101,13 @@ export const publishVenueSchema = hostSetupBasicsSchema
   .merge(hostSetupWorkingHoursSchema)
   .merge(hostSetupPricingSchema);
 
+export const updateVenueSettingsSchema = publishVenueSchema.extend({
+  phone: z.string().trim().optional(),
+  cancelPendingBookings: z.boolean().optional(),
+});
+
 export type PublishVenueInput = z.infer<typeof publishVenueSchema>;
+export type UpdateVenueSettingsInput = z.infer<typeof updateVenueSettingsSchema>;
 
 export type HostSetupErrorKey =
   | "generic"
@@ -125,7 +131,11 @@ export type HostSetupErrorKey =
   | "maxSlotsMax"
   | "priceRequired"
   | "pricePositive"
-  | "confirmationModeRequired";
+  | "confirmationModeRequired"
+  | "bookingActionFailed"
+  | "venueNotPublished"
+  | "settingsUpdateFailed"
+  | "pendingCancellationRequired";
 
 export function zodIssuesToHostFieldErrors(
   issues: ZodIssue[],

@@ -26,9 +26,11 @@ type SiteHeaderProps = {
 export function SiteHeader({ locale, user }: SiteHeaderProps) {
   const t = useTranslations("common");
   const tPlayer = useTranslations("player.nav");
+  const tHost = useTranslations("host.nav");
   const [open, setOpen] = useState(false);
   const isAuthenticated = Boolean(user);
   const isPlayer = user?.role === "player";
+  const isHost = user?.role === "host";
 
   const playerNavDesktop = isPlayer ? (
     <nav className="hidden items-center gap-4 md:flex">
@@ -43,6 +45,42 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         {tPlayer("bookings")}
+      </Link>
+    </nav>
+  ) : null;
+
+  const hostNavDesktop = isHost ? (
+    <nav className="hidden items-center gap-4 md:flex">
+      <Link
+        href="/host/dashboard"
+        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {tHost("dashboard")}
+      </Link>
+      <Link
+        href="/host/settings"
+        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {tHost("settings")}
+      </Link>
+    </nav>
+  ) : null;
+
+  const hostNavMobile = isHost ? (
+    <nav className="flex flex-col gap-2 px-4">
+      <Link
+        href="/host/dashboard"
+        onClick={() => setOpen(false)}
+        className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+      >
+        {tHost("dashboard")}
+      </Link>
+      <Link
+        href="/host/settings"
+        onClick={() => setOpen(false)}
+        className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+      >
+        {tHost("settings")}
       </Link>
     </nav>
   ) : null;
@@ -69,6 +107,7 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
   const authNavDesktop = isAuthenticated ? (
     <div className="flex items-center gap-4">
       {playerNavDesktop}
+      {hostNavDesktop}
       {user?.firstName ? (
         <span className="hidden text-sm text-muted-foreground lg:inline">
           {user.firstName}
@@ -96,6 +135,7 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
   const authNavMobile = isAuthenticated ? (
     <div className="flex flex-col gap-2">
       {playerNavMobile}
+      {hostNavMobile}
       <div className="flex flex-col gap-2 px-4">
         {user?.firstName ? (
           <p className="px-3 py-2 text-sm text-muted-foreground">{user.firstName}</p>

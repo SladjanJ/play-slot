@@ -29,6 +29,7 @@ export type VenueDetail = {
   country_name_en: string;
   country_name_sr: string;
   working_hours: WorkingHourRow[];
+  host_phone: string | null;
 };
 
 export async function getPublishedVenueBySlug(slug: string) {
@@ -50,6 +51,10 @@ export async function getPublishedVenueBySlug(slug: string) {
       price_per_slot,
       currency,
       confirmation_mode,
+      host_id,
+      profiles!venues_host_id_fkey (
+        phone
+      ),
       cities!inner (
         name_en,
         name_sr,
@@ -80,6 +85,8 @@ export async function getPublishedVenueBySlug(slug: string) {
     countries: { name_en: string; name_sr: string };
   };
 
+  const hostProfile = data.profiles as { phone: string | null } | null;
+
   const venue: VenueDetail = {
     id: data.id,
     slug: data.slug,
@@ -98,6 +105,7 @@ export async function getPublishedVenueBySlug(slug: string) {
     country_name_en: city.countries.name_en,
     country_name_sr: city.countries.name_sr,
     working_hours: (data.venue_working_hours ?? []) as WorkingHourRow[],
+    host_phone: hostProfile?.phone ?? null,
   };
 
   return venue;

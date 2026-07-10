@@ -13,6 +13,32 @@ export type TimeSlot = {
   lockedByMe: boolean;
 };
 
+export type BookingOccupancy = OccupiedRange & {
+  id: string;
+  status: "pending" | "confirmed";
+  playerName: string;
+  playerEmail: string;
+  playerPhone: string | null;
+  slotCount: number;
+  totalPrice: number;
+};
+
+export type HostSlotBooking = {
+  id: string;
+  status: "pending" | "confirmed";
+  playerName: string;
+  playerEmail: string;
+  playerPhone: string | null;
+  slotCount: number;
+  totalPrice: number;
+  startAt: string;
+  endAt: string;
+};
+
+export type HostTimeSlot = TimeSlot & {
+  booking?: HostSlotBooking;
+};
+
 export type WorkingHourRow = {
   day_of_week: number;
   opens_at: string | null;
@@ -175,4 +201,41 @@ export function formatPrice(
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(amount);
+}
+
+export function enrichSlotsWithBookings(
+  slots: TimeSlot[],
+  bookings: BookingOccupancy[],
+): HostTimeSlot[] {
+  return slots.map((slot) => {
+    if (slot.status !== "booked") {
+      return slot;
+    }
+
+    const startMs = new Date(slot.startAt).getTime();
+    const endMs = new Date(slot.endAt).getTime();
+
+    for (const booking of bookings) {
+      const bStart = new Date(booking.start_at).getTime();
+      const bEnd = new Date(booking.end_at).getTime();
+      if (rangesOverlap(startMs, endMs, bStart, bEnd)) {
+        return {
+          ...slot,
+          booking: {
+            id: booking.id,
+            status: booking.status,
+            playerName: booking.playerName,
+            playerEmail: booking.playerEmail,
+            playerPhone: booking.playerPhone,
+            slotCount: booking.slotCount,
+            totalPrice: booking.totalPrice,
+            startAt: booking.start_at,
+            endAt: booking.end_at,
+          },
+        };
+      }
+    }
+
+    return slot;
+  });
 }

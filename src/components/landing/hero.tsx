@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 
 import { PlaySlotLogo } from "@/components/layout/playslot-logo";
+import { AppLink } from "@/components/ui/app-link";
 import { ButtonLink } from "@/components/ui/button-link";
 
 type LandingHeroProps = {
@@ -37,13 +38,13 @@ export function LandingHero({ isAuthenticated, userName }: LandingHeroProps) {
                   {t("welcomeBack", { name: userName })}
                 </p>
               ) : null}
-              <ButtonLink
+              <AppLink
                 href="/search"
                 size="lg"
                 className="h-11 min-w-[180px] px-6 text-base"
               >
                 {t("goToSearch")}
-              </ButtonLink>
+              </AppLink>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">

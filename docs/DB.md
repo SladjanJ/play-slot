@@ -235,7 +235,7 @@ Auto-update `updated_at` on profiles, venues, bookings.
 | cities | Public read |
 | venues | Public read published; host CRUD own |
 | venue_working_hours | Read if venue visible; host CRUD own |
-| bookings | Player own; Host own venue bookings |
+| bookings | Player own + occupancy on published venues; Host own venue bookings |
 | slot_locks | Player own locks; Host read own venue |
 | notifications | User own |
 

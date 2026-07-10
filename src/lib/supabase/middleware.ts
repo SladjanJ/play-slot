@@ -99,7 +99,7 @@ export async function updateSession(
 
     const url = request.nextUrl.clone();
     url.pathname =
-      profile?.role === "host" ? "/host/setup" : `/${locale}`;
+      profile?.role === "host" ? "/host/setup" : "/search";
     url.search = "";
     return NextResponse.redirect(url);
   }

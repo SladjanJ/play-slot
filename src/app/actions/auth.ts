@@ -95,7 +95,7 @@ function redirectAfterAuth(
     nextRedirect("/host/setup");
   }
 
-  i18nRedirect({ href: "/", locale });
+  nextRedirect("/search");
 }
 
 export async function signUpAction(

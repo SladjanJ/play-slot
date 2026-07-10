@@ -22,7 +22,11 @@ export async function SiteHeaderWrapper({ locale: localeProp }: SiteHeaderWrappe
       locale={locale}
       user={
         user
-          ? { firstName: profile?.first_name ?? user.email?.split("@")[0] ?? "" }
+          ? {
+              firstName:
+                profile?.first_name ?? user.email?.split("@")[0] ?? "",
+              role: profile?.role,
+            }
           : null
       }
     />

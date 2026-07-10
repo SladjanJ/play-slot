@@ -1,0 +1,178 @@
+import {
+  getDbDayOfWeek,
+  parseTimeToMinutes,
+  zonedDateTimeToUtc,
+} from "@/lib/booking/timezone";
+
+export type SlotStatus = "available" | "booked" | "locked" | "past";
+
+export type TimeSlot = {
+  startAt: string;
+  endAt: string;
+  status: SlotStatus;
+  lockedByMe: boolean;
+};
+
+export type WorkingHourRow = {
+  day_of_week: number;
+  opens_at: string | null;
+  closes_at: string | null;
+  is_closed: boolean;
+};
+
+export type OccupiedRange = {
+  start_at: string;
+  end_at: string;
+  locked_by?: string;
+  expires_at?: string;
+};
+
+function rangesOverlap(
+  aStart: number,
+  aEnd: number,
+  bStart: number,
+  bEnd: number,
+): boolean {
+  return aStart < bEnd && bStart < aEnd;
+}
+
+export function generateSlotsForDay({
+  dateStr,
+  timezone,
+  slotDurationMinutes,
+  workingHours,
+  bookings,
+  locks,
+  currentUserId,
+  now = new Date(),
+}: {
+  dateStr: string;
+  timezone: string;
+  slotDurationMinutes: number;
+  workingHours: WorkingHourRow[];
+  bookings: OccupiedRange[];
+  locks: OccupiedRange[];
+  currentUserId: string;
+  now?: Date;
+}): TimeSlot[] {
+  const dayOfWeek = getDbDayOfWeek(dateStr, timezone);
+  const dayHours = workingHours.find((h) => h.day_of_week === dayOfWeek);
+
+  if (!dayHours || dayHours.is_closed || !dayHours.opens_at || !dayHours.closes_at) {
+    return [];
+  }
+
+  const openMinutes = parseTimeToMinutes(dayHours.opens_at.slice(0, 5));
+  const closeMinutes = parseTimeToMinutes(dayHours.closes_at.slice(0, 5));
+  const slots: TimeSlot[] = [];
+  const nowMs = now.getTime();
+
+  for (
+    let startMinutes = openMinutes;
+    startMinutes + slotDurationMinutes <= closeMinutes;
+    startMinutes += slotDurationMinutes
+  ) {
+    const startTime = `${String(Math.floor(startMinutes / 60)).padStart(2, "0")}:${String(startMinutes % 60).padStart(2, "0")}`;
+    const endMinutes = startMinutes + slotDurationMinutes;
+    const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+
+    const startAt = zonedDateTimeToUtc(dateStr, startTime, timezone);
+    const endAt = zonedDateTimeToUtc(dateStr, endTime, timezone);
+    const startMs = startAt.getTime();
+    const endMs = endAt.getTime();
+
+    let status: SlotStatus = "available";
+    let lockedByMe = false;
+
+    if (endMs <= nowMs) {
+      status = "past";
+    } else {
+      for (const booking of bookings) {
+        const bStart = new Date(booking.start_at).getTime();
+        const bEnd = new Date(booking.end_at).getTime();
+        if (rangesOverlap(startMs, endMs, bStart, bEnd)) {
+          status = "booked";
+          break;
+        }
+      }
+
+      if (status === "available") {
+        for (const lock of locks) {
+          const expiresAt = lock.expires_at
+            ? new Date(lock.expires_at).getTime()
+            : 0;
+          if (expiresAt <= nowMs) continue;
+
+          const lStart = new Date(lock.start_at).getTime();
+          const lEnd = new Date(lock.end_at).getTime();
+          if (rangesOverlap(startMs, endMs, lStart, lEnd)) {
+            if (lock.locked_by === currentUserId) {
+              lockedByMe = true;
+            } else {
+              status = "locked";
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    slots.push({
+      startAt: startAt.toISOString(),
+      endAt: endAt.toISOString(),
+      status,
+      lockedByMe,
+    });
+  }
+
+  return slots;
+}
+
+export function canBookConsecutiveSlots(
+  slots: TimeSlot[],
+  startIndex: number,
+  slotCount: number,
+): boolean {
+  if (startIndex < 0 || slotCount < 1 || startIndex + slotCount > slots.length) {
+    return false;
+  }
+
+  for (let i = startIndex; i < startIndex + slotCount; i++) {
+    const slot = slots[i];
+    if (!slot || slot.status !== "available") {
+      return false;
+    }
+    if (i > startIndex) {
+      const prev = slots[i - 1];
+      if (!prev || prev.endAt !== slot.startAt) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+export function computeBookingEndAt(
+  startAt: string,
+  slotCount: number,
+  slotDurationMinutes: number,
+): string {
+  const end = new Date(startAt);
+  end.setUTCMinutes(end.getUTCMinutes() + slotCount * slotDurationMinutes);
+  return end.toISOString();
+}
+
+export function formatPrice(
+  amount: number,
+  currency: string,
+  locale: string,
+): string {
+  const intlLocale = locale === "sr" ? "sr-RS" : "en-US";
+  return new Intl.NumberFormat(intlLocale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}

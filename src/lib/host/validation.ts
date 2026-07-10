@@ -1,5 +1,9 @@
 import { z, type ZodIssue } from "zod";
 
+import {
+  parseCloseTimeToMinutes,
+  parseTimeToMinutes,
+} from "@/lib/booking/timezone";
 import { TIMEZONE_OPTIONS } from "@/lib/auth/validation";
 import {
   DEFAULT_CONFIRMATION_MODE,
@@ -36,16 +40,17 @@ const workingDaySchema = z
       });
     }
 
-    if (
-      timeRegex.test(day.opensAt) &&
-      timeRegex.test(day.closesAt) &&
-      day.opensAt >= day.closesAt
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message: "closesAfterOpens",
-        path: ["closesAt"],
-      });
+    if (timeRegex.test(day.opensAt) && timeRegex.test(day.closesAt)) {
+      const openMin = parseTimeToMinutes(day.opensAt);
+      const closeMin = parseCloseTimeToMinutes(day.closesAt, day.opensAt);
+
+      if (openMin >= closeMin) {
+        ctx.addIssue({
+          code: "custom",
+          message: "closesAfterOpens",
+          path: ["closesAt"],
+        });
+      }
     }
   });
 

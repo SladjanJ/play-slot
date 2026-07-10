@@ -1,8 +1,11 @@
 import {
+  addDaysToDateString,
   getDbDayOfWeek,
+  parseCloseTimeToMinutes,
   parseTimeToMinutes,
   zonedDateTimeToUtc,
 } from "@/lib/booking/timezone";
+import { BOOKING_MIN_ADVANCE_HOURS } from "@/lib/booking/constants";
 
 export type SlotStatus = "available" | "booked" | "locked" | "past";
 
@@ -88,10 +91,14 @@ export function generateSlotsForDay({
     return [];
   }
 
-  const openMinutes = parseTimeToMinutes(dayHours.opens_at.slice(0, 5));
-  const closeMinutes = parseTimeToMinutes(dayHours.closes_at.slice(0, 5));
+  const openMinutes = parseTimeToMinutes(dayHours.opens_at);
+  const closeMinutes = parseCloseTimeToMinutes(
+    dayHours.closes_at,
+    dayHours.opens_at,
+  );
   const slots: TimeSlot[] = [];
   const nowMs = now.getTime();
+  const minAdvanceMs = BOOKING_MIN_ADVANCE_HOURS * 60 * 60 * 1000;
 
   for (
     let startMinutes = openMinutes;
@@ -100,17 +107,25 @@ export function generateSlotsForDay({
   ) {
     const startTime = `${String(Math.floor(startMinutes / 60)).padStart(2, "0")}:${String(startMinutes % 60).padStart(2, "0")}`;
     const endMinutes = startMinutes + slotDurationMinutes;
-    const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+
+    let endDateStr = dateStr;
+    let endTime: string;
+    if (endMinutes >= 24 * 60) {
+      endDateStr = addDaysToDateString(dateStr, 1);
+      endTime = "00:00";
+    } else {
+      endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+    }
 
     const startAt = zonedDateTimeToUtc(dateStr, startTime, timezone);
-    const endAt = zonedDateTimeToUtc(dateStr, endTime, timezone);
+    const endAt = zonedDateTimeToUtc(endDateStr, endTime, timezone);
     const startMs = startAt.getTime();
     const endMs = endAt.getTime();
 
     let status: SlotStatus = "available";
     let lockedByMe = false;
 
-    if (endMs <= nowMs) {
+    if (startMs - nowMs < minAdvanceMs) {
       status = "past";
     } else {
       for (const booking of bookings) {
@@ -203,6 +218,20 @@ export function formatPrice(
   }).format(amount);
 }
 
+function toHostSlotBooking(booking: BookingOccupancy): HostSlotBooking {
+  return {
+    id: booking.id,
+    status: booking.status,
+    playerName: booking.playerName,
+    playerEmail: booking.playerEmail,
+    playerPhone: booking.playerPhone,
+    slotCount: booking.slotCount,
+    totalPrice: booking.totalPrice,
+    startAt: booking.start_at,
+    endAt: booking.end_at,
+  };
+}
+
 export function enrichSlotsWithBookings(
   slots: TimeSlot[],
   bookings: BookingOccupancy[],
@@ -221,21 +250,55 @@ export function enrichSlotsWithBookings(
       if (rangesOverlap(startMs, endMs, bStart, bEnd)) {
         return {
           ...slot,
-          booking: {
-            id: booking.id,
-            status: booking.status,
-            playerName: booking.playerName,
-            playerEmail: booking.playerEmail,
-            playerPhone: booking.playerPhone,
-            slotCount: booking.slotCount,
-            totalPrice: booking.totalPrice,
-            startAt: booking.start_at,
-            endAt: booking.end_at,
-          },
+          booking: toHostSlotBooking(booking),
         };
       }
     }
 
     return slot;
   });
+}
+
+/** Keeps booked slots visible even when working hours no longer cover them. */
+export function enrichHostSlotsWithBookings(
+  slots: TimeSlot[],
+  bookings: BookingOccupancy[],
+  slotDurationMinutes: number,
+): HostTimeSlot[] {
+  const enriched = enrichSlotsWithBookings(slots, bookings);
+  const extraSlots: HostTimeSlot[] = [];
+  const slotMs = slotDurationMinutes * 60 * 1000;
+
+  for (const booking of bookings) {
+    let cursor = new Date(booking.start_at).getTime();
+    const bookingEnd = new Date(booking.end_at).getTime();
+
+    while (cursor < bookingEnd) {
+      const slotEnd = Math.min(cursor + slotMs, bookingEnd);
+      const startAt = new Date(cursor).toISOString();
+      const endAt = new Date(slotEnd).toISOString();
+
+      const coveredByWorkingHours = slots.some((slot) => {
+        const slotStart = new Date(slot.startAt).getTime();
+        const slotEndMs = new Date(slot.endAt).getTime();
+        return rangesOverlap(cursor, slotEnd, slotStart, slotEndMs);
+      });
+
+      if (!coveredByWorkingHours) {
+        extraSlots.push({
+          startAt,
+          endAt,
+          status: "booked",
+          lockedByMe: false,
+          booking: toHostSlotBooking(booking),
+        });
+      }
+
+      cursor = slotEnd;
+    }
+  }
+
+  return [...enriched, ...extraSlots].sort((a, b) =>
+    a.startAt.localeCompare(b.startAt),
+  );
 }

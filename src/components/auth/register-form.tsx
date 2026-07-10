@@ -8,6 +8,7 @@ import { AuthFormCard } from "@/components/auth/auth-form-card";
 import { FieldError } from "@/components/auth/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { TIMEZONE_OPTIONS } from "@/lib/auth/validation";
@@ -85,12 +86,13 @@ export function RegisterForm({ locale, countries, cities }: RegisterFormProps) {
 
         <div className="space-y-2">
           <Label htmlFor="password">{t("password")}</Label>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="new-password"
             aria-invalid={Boolean(state.fieldErrors?.password)}
+            showLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           <FieldError message={state.fieldErrors?.password} />
           {!state.fieldErrors?.password ? (

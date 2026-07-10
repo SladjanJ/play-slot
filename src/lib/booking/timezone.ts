@@ -93,7 +93,69 @@ export function addDaysToDateString(dateStr: string, days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
+export function formatTimeForInput(value: string | null | undefined): string {
+  if (!value) return "";
+
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return "";
+
+  return `${match[1].padStart(2, "0")}:${match[2]}`;
+}
+
 export function parseTimeToMinutes(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
+  const normalized = formatTimeForInput(time);
+  const [hours, minutes] = normalized.split(":").map(Number);
   return hours * 60 + minutes;
+}
+
+/** closes_at "00:00" with a later opens_at means end-of-day (24:00), not start-of-day. */
+export function parseCloseTimeToMinutes(
+  closesAt: string,
+  opensAt: string,
+): number {
+  const close = parseTimeToMinutes(closesAt);
+  const open = parseTimeToMinutes(opensAt);
+
+  if (close === 0 && open > 0) return 24 * 60;
+  if (close > 0 && close <= open) return close + 24 * 60;
+
+  return close;
+}
+
+/** Human-readable close time; keeps 00:00 when it means end-of-day. */
+export function formatCloseTimeForDisplay(
+  closesAt: string,
+  opensAt: string,
+): string {
+  const closes = formatTimeForInput(closesAt);
+  const opens = formatTimeForInput(opensAt);
+
+  if (closes === "00:00" && opens && parseTimeToMinutes(opens) > 0) {
+    return "00:00";
+  }
+
+  return closes;
+}
+
+export function getDayWorkingHoursLabel(
+  workingHours: Array<{
+    day_of_week: number;
+    opens_at: string | null;
+    closes_at: string | null;
+    is_closed: boolean;
+  }>,
+  dateStr: string,
+  timezone: string,
+): string | null {
+  const dayOfWeek = getDbDayOfWeek(dateStr, timezone);
+  const dayHours = workingHours.find((hours) => hours.day_of_week === dayOfWeek);
+
+  if (!dayHours || dayHours.is_closed || !dayHours.opens_at || !dayHours.closes_at) {
+    return null;
+  }
+
+  const opens = formatTimeForInput(dayHours.opens_at);
+  const closes = formatCloseTimeForDisplay(dayHours.closes_at, dayHours.opens_at);
+
+  return `${opens}–${closes}`;
 }

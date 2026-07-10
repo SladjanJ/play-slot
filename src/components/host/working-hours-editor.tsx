@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimeInput24h } from "@/components/ui/time-input-24h";
 import { DAY_LABEL_KEYS, type WorkingDayForm } from "@/lib/host/constants";
 
 type WorkingHoursEditorProps = {
@@ -61,12 +61,12 @@ export function WorkingHoursEditor({
               <Label htmlFor={`opens-${day.dayOfWeek}`} className="text-xs">
                 {t("opensAt")}
               </Label>
-              <Input
+              <TimeInput24h
                 id={`opens-${day.dayOfWeek}`}
-                type="time"
                 value={day.opensAt}
                 disabled={day.isClosed}
-                onChange={(e) => updateDay(index, { opensAt: e.target.value })}
+                aria-label={t("opensAt")}
+                onChange={(opensAt) => updateDay(index, { opensAt })}
                 aria-invalid={Boolean(errors?.[`workingHours.${index}.opensAt`])}
               />
             </div>
@@ -75,12 +75,12 @@ export function WorkingHoursEditor({
               <Label htmlFor={`closes-${day.dayOfWeek}`} className="text-xs">
                 {t("closesAt")}
               </Label>
-              <Input
+              <TimeInput24h
                 id={`closes-${day.dayOfWeek}`}
-                type="time"
                 value={day.closesAt}
                 disabled={day.isClosed}
-                onChange={(e) => updateDay(index, { closesAt: e.target.value })}
+                aria-label={t("closesAt")}
+                onChange={(closesAt) => updateDay(index, { closesAt })}
                 aria-invalid={Boolean(errors?.[`workingHours.${index}.closesAt`])}
               />
             </div>

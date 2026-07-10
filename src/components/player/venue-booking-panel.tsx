@@ -27,6 +27,7 @@ import {
   type TimeSlot,
 } from "@/lib/booking/slots";
 import { SLOT_LOCK_MINUTES } from "@/lib/booking/constants";
+import { useVenueRealtime } from "@/lib/hooks/use-venue-realtime";
 import { sameInstant } from "@/lib/booking/timestamps";
 import {
   addDaysToDateString,
@@ -82,6 +83,8 @@ export function VenueBookingPanel({
   });
   const [activeLock, setActiveLock] = useState(initialLock);
   const [lockSecondsLeft, setLockSecondsLeft] = useState<number | null>(null);
+
+  useVenueRealtime({ venueId: venue.id });
 
   const [lockState, lockAction, lockPending] = useActionState(
     acquireSlotLockAction.bind(null, locale),

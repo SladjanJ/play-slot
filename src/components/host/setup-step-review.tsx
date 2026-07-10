@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 
 import type { CityOption, CountryOption } from "@/lib/data/locations";
+import { formatCloseTimeForDisplay } from "@/lib/booking/timezone";
 import { DAY_LABEL_KEYS } from "@/lib/host/constants";
 import { currencyForCountryCode } from "@/lib/host/currency";
 import type { PublishVenueInput } from "@/lib/host/validation";
@@ -46,7 +47,7 @@ export function SetupStepReview({
     .filter((day) => !day.isClosed)
     .map(
       (day) =>
-        `${t(`days.${DAY_LABEL_KEYS[day.dayOfWeek]}`)} ${day.opensAt}–${day.closesAt}`,
+        `${t(`days.${DAY_LABEL_KEYS[day.dayOfWeek]}`)} ${day.opensAt}–${formatCloseTimeForDisplay(day.closesAt, day.opensAt)}`,
     )
     .join(", ");
 

@@ -5,6 +5,12 @@ import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { currencyForCountryCode } from "@/lib/host/currency";
+import { formatTimeForInput } from "@/lib/booking/timezone";
+import {
+  notifyBookingApproved,
+  notifyBookingRejected,
+  notifyPendingBookingsMassCancelled,
+} from "@/lib/notifications/booking-events";
 import {
   type HostSetupErrorKey,
   type PublishVenueInput,
@@ -166,12 +172,9 @@ export async function publishVenueAction(
     const { error: hoursError } = await supabase
       .from("venue_working_hours")
       .insert(
-        data.workingHours.map((day) => ({
+        mapWorkingHoursForDb(data.workingHours).map((day) => ({
           venue_id: existingVenue.id,
-          day_of_week: day.dayOfWeek,
-          opens_at: day.isClosed ? null : day.opensAt,
-          closes_at: day.isClosed ? null : day.closesAt,
-          is_closed: day.isClosed,
+          ...day,
         })),
       );
 
@@ -192,12 +195,9 @@ export async function publishVenueAction(
     const { error: hoursError } = await supabase
       .from("venue_working_hours")
       .insert(
-        data.workingHours.map((day) => ({
+        mapWorkingHoursForDb(data.workingHours).map((day) => ({
           venue_id: venue.id,
-          day_of_week: day.dayOfWeek,
-          opens_at: day.isClosed ? null : day.opensAt,
-          closes_at: day.isClosed ? null : day.closesAt,
-          is_closed: day.isClosed,
+          ...day,
         })),
       );
 
@@ -211,6 +211,15 @@ export async function publishVenueAction(
   redirect("/host/dashboard");
 }
 
+function mapWorkingHoursForDb(workingHours: PublishVenueInput["workingHours"]) {
+  return workingHours.map((day) => ({
+    day_of_week: day.dayOfWeek,
+    opens_at: day.isClosed ? null : formatTimeForInput(day.opensAt),
+    closes_at: day.isClosed ? null : formatTimeForInput(day.closesAt),
+    is_closed: day.isClosed,
+  }));
+}
+
 async function upsertVenueWorkingHours(
   supabase: Awaited<ReturnType<typeof createClient>>,
   venueId: string,
@@ -219,12 +228,9 @@ async function upsertVenueWorkingHours(
   await supabase.from("venue_working_hours").delete().eq("venue_id", venueId);
 
   const { error: hoursError } = await supabase.from("venue_working_hours").insert(
-    workingHours.map((day) => ({
+    mapWorkingHoursForDb(workingHours).map((day) => ({
       venue_id: venueId,
-      day_of_week: day.dayOfWeek,
-      opens_at: day.isClosed ? null : day.opensAt,
-      closes_at: day.isClosed ? null : day.closesAt,
-      is_closed: day.isClosed,
+      ...day,
     })),
   );
 
@@ -309,6 +315,8 @@ export async function updateVenueSettingsAction(
       if (cancelError) {
         return { error: await translateError(locale, "settingsUpdateFailed") };
       }
+
+      void notifyPendingBookingsMassCancelled(existingVenue.id, locale);
     }
   }
 
@@ -457,7 +465,10 @@ export async function approveBookingAction(
     return { error: await translateBookingError(locale, "bookingActionFailed") };
   }
 
+  void notifyBookingApproved(bookingId, locale);
+
   revalidatePath("/host/dashboard");
+  revalidatePath("/notifications");
   return { success: "approved" };
 }
 
@@ -489,6 +500,9 @@ export async function rejectBookingAction(
     return { error: await translateBookingError(locale, "bookingActionFailed") };
   }
 
+  void notifyBookingRejected(bookingId, locale);
+
   revalidatePath("/host/dashboard");
+  revalidatePath("/notifications");
   return { success: "rejected" };
 }

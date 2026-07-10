@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import { getAuthUser, getUserProfile } from "@/lib/auth/session";
+import { getUnreadNotificationCount } from "@/lib/notifications/data";
 import { isAppLocale } from "@/lib/locale";
 import { SiteHeader } from "@/components/layout/site-header";
 
@@ -17,9 +18,14 @@ export async function SiteHeaderWrapper({ locale: localeProp }: SiteHeaderWrappe
   const locale =
     localeProp ?? (isAppLocale(cookieLocale) ? cookieLocale : "sr");
 
+  const unreadNotifications = user
+    ? await getUnreadNotificationCount(user.id)
+    : 0;
+
   return (
     <SiteHeader
       locale={locale}
+      unreadNotifications={unreadNotifications}
       user={
         user
           ? {

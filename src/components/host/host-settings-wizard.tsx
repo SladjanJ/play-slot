@@ -28,6 +28,7 @@ import {
   hostSetupLocationSchema,
   hostSetupPricingSchema,
   hostSetupWorkingHoursSchema,
+  updateVenueSettingsSchema,
   type UpdateVenueSettingsInput,
 } from "@/lib/host/validation";
 
@@ -207,6 +208,20 @@ export function HostSettingsWizard({
   }
 
   function handleSaveClick() {
+    const parsed = updateVenueSettingsSchema.safeParse(formData);
+
+    if (!parsed.success) {
+      const errors = stepFieldErrors("review", parsed.error.issues);
+      const translated: Record<string, string> = {};
+
+      for (const [field, key] of Object.entries(errors)) {
+        translated[field] = tErrors(key as Parameters<typeof tErrors>[0]);
+      }
+
+      setStepErrors(translated);
+      return;
+    }
+
     if (needsPendingCancelConfirm) {
       setPendingDialogOpen(true);
       return;

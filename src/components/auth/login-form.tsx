@@ -8,6 +8,7 @@ import { AuthFormCard } from "@/components/auth/auth-form-card";
 import { FieldError } from "@/components/auth/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
 
@@ -61,12 +62,13 @@ export function LoginForm({ locale, next, callbackError }: LoginFormProps) {
               {t("forgotPassword")}
             </Link>
           </div>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="current-password"
             aria-invalid={Boolean(state.fieldErrors?.password)}
+            showLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           <FieldError message={state.fieldErrors?.password} />
         </div>

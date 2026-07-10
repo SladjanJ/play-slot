@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import {
-  enrichSlotsWithBookings,
+  enrichHostSlotsWithBookings,
   generateSlotsForDay,
   type BookingOccupancy,
   type HostTimeSlot,
@@ -192,7 +192,11 @@ async function getHostDaySlots(
     currentUserId: hostUserId,
   });
 
-  return enrichSlotsWithBookings(slots, bookingsWithPlayers);
+  return enrichHostSlotsWithBookings(
+    slots,
+    bookingsWithPlayers,
+    venue.slot_duration_minutes,
+  );
 }
 
 async function getTodayBookings(

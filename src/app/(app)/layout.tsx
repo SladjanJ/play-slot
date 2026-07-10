@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 
+import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeaderWrapper } from "@/components/layout/site-header-wrapper";
 import { isAppLocale } from "@/lib/locale";
 
@@ -19,6 +20,7 @@ export default async function AppLayout({ children }: AppLayoutProps) {
       <div className="landing-page flex min-h-full flex-col">
         <SiteHeaderWrapper />
         <main className="flex flex-1 flex-col">{children}</main>
+        <SiteFooter />
       </div>
     </NextIntlClientProvider>
   );

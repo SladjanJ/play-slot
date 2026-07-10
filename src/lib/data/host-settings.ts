@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { formatTimeForInput } from "@/lib/booking/timezone";
 import { createDefaultWorkingHours } from "@/lib/host/constants";
 import type { UpdateVenueSettingsInput } from "@/lib/host/validation";
 import { createClient } from "@/lib/supabase/server";
@@ -21,8 +22,8 @@ function mapWorkingHoursFromDb(rows: WorkingHourRow[]) {
     .sort((a, b) => a.day_of_week - b.day_of_week)
     .map((row) => ({
       dayOfWeek: row.day_of_week,
-      opensAt: row.opens_at?.slice(0, 5) ?? "",
-      closesAt: row.closes_at?.slice(0, 5) ?? "",
+      opensAt: formatTimeForInput(row.opens_at),
+      closesAt: formatTimeForInput(row.closes_at),
       isClosed: row.is_closed,
     }));
 }

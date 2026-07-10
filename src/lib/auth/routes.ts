@@ -7,7 +7,8 @@ const AUTH_PAGES = [
   "/forgot-password",
   "/reset-password",
 ] as const;
-const PLAYER_PREFIXES = ["/search", "/venues", "/bookings", "/notifications"] as const;
+const SHARED_PREFIXES = ["/notifications"] as const;
+const PLAYER_PREFIXES = ["/search", "/venues", "/bookings"] as const;
 
 export function isAuthPage(pathname: string): boolean {
   return AUTH_PAGES.some((page) => pathname.endsWith(page));
@@ -29,6 +30,12 @@ export function isHostSetupPath(pathname: string): boolean {
   return pathname.startsWith("/host/setup");
 }
 
+export function isSharedPath(pathname: string): boolean {
+  return SHARED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export function isPlayerPath(pathname: string): boolean {
   return PLAYER_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
@@ -36,7 +43,7 @@ export function isPlayerPath(pathname: string): boolean {
 }
 
 export function isProtectedPath(pathname: string): boolean {
-  return isPlayerPath(pathname) || isHostPath(pathname);
+  return isPlayerPath(pathname) || isHostPath(pathname) || isSharedPath(pathname);
 }
 
 /** App routes live outside `/[locale]` and must not get a locale prefix. */

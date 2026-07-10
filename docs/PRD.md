@@ -143,6 +143,7 @@ Host mora popuniti prije nego teren bude javan:
 4. Rezervacija:
    - Bira **početni slot**
    - Bira **broj uzastopnih slotova** (1 … max definisan od Host-a)
+   - **Minimum 1 sat** prije početka termina (ne može se rezervisati slot koji počinje za manje od 1h)
    - Trajanje mora biti **višekratnik** Host slot trajanja (npr. ako je 1h optimalan, nema 30 min)
    - **3 min lock** tokom checkout-a
    - Prikaz ukupne cijene
@@ -182,6 +183,7 @@ Host mora popuniti prije nego teren bude javan:
 | Rule | Value |
 |------|-------|
 | Terena po Host nalogu | 1 |
+| Min. rezervacija unaprijed | 1 sat prije početka termina |
 | Min. otkazivanje | 5 sati prije termina |
 | Pending timeout | 24 sata |
 | Slot lock | 3 minute |
@@ -236,12 +238,12 @@ Host mora popuniti prije nego teren bude javan:
 
 ## 9. Success Criteria (MVP)
 
-- [ ] Player može pronaći teren, rezervisati i otkazati termin
-- [ ] Host može postaviti teren, objaviti ga i upravljati rezervacijama
-- [ ] Nema double-booking (lock + DB constraint)
-- [ ] Email verifikacija i reset lozinke rade
-- [ ] SR/EN prekidač radi i pamti izbor
-- [ ] Realtime kalendar ažurira slotove
+- [x] Player može pronaći teren, rezervisati i otkazati termin
+- [x] Host može postaviti teren, objaviti ga i upravljati rezervacijama
+- [x] Nema double-booking (lock + DB constraint)
+- [x] Email verifikacija i reset lozinke rade
+- [x] SR/EN prekidač radi i pamti izbor
+- [x] Realtime kalendar ažurira slotove
 
 ---
 

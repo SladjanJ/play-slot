@@ -1,6 +1,6 @@
 import { z, type ZodIssue } from "zod";
 
-import { CANCEL_MIN_HOURS } from "@/lib/booking/constants";
+import { BOOKING_MIN_ADVANCE_HOURS, CANCEL_MIN_HOURS } from "@/lib/booking/constants";
 
 export const acquireSlotLockSchema = z.object({
   venueId: z.string().uuid(),
@@ -35,6 +35,7 @@ export type BookingErrorKey =
   | "bookingNotFound"
   | "cannotCancel"
   | "cancelTooLate"
+  | "bookingTooSoon"
   | "reasonRequired"
   | "reasonTooLong";
 
@@ -66,6 +67,20 @@ export function canCancelBooking(
 
   if (startMs - now.getTime() < minMs) {
     return { allowed: false, reason: "cancelTooLate" };
+  }
+
+  return { allowed: true };
+}
+
+export function canBookSlot(
+  startAt: string,
+  now = new Date(),
+): { allowed: boolean; reason?: "bookingTooSoon" } {
+  const startMs = new Date(startAt).getTime();
+  const minMs = BOOKING_MIN_ADVANCE_HOURS * 60 * 60 * 1000;
+
+  if (startMs - now.getTime() < minMs) {
+    return { allowed: false, reason: "bookingTooSoon" };
   }
 
   return { allowed: true };

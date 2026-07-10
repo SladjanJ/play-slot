@@ -27,9 +27,11 @@ import {
 import {
   addDaysToDateString,
   formatTimeInTimezone,
+  getDayWorkingHoursLabel,
   getTodayInTimezone,
 } from "@/lib/booking/timezone";
 import type { HostBookingRow, HostVenueContext } from "@/lib/data/host-dashboard";
+import { useVenueRealtime } from "@/lib/hooks/use-venue-realtime";
 import { cn } from "@/lib/utils";
 
 type HostDashboardPanelProps = {
@@ -310,8 +312,15 @@ export function HostDashboardPanel({
     null,
   );
 
+  useVenueRealtime({ venueId: venue.id });
+
   const minDate = getTodayInTimezone(venue.timezone);
   const maxDate = addDaysToDateString(minDate, 30);
+  const workingHoursLabel = getDayWorkingHoursLabel(
+    venue.working_hours,
+    selectedDate,
+    venue.timezone,
+  );
 
   const slotTimeLabel = (slot: HostTimeSlot) =>
     formatTimeInTimezone(new Date(slot.startAt), venue.timezone, locale);
@@ -400,6 +409,15 @@ export function HostDashboardPanel({
         <div className="flex min-h-[24rem] flex-col rounded-3xl border border-border/60 bg-card/75 p-6 shadow-lg backdrop-blur-md">
           <h2 className="text-lg font-medium">{t("calendarTitle")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{t("calendarHint")}</p>
+          {workingHoursLabel ? (
+            <p className="mt-2 text-sm font-medium text-foreground">
+              {t("workingHoursForDay", { hours: workingHoursLabel })}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("closedDay")}
+            </p>
+          )}
 
           <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">

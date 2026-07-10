@@ -366,7 +366,17 @@ export type Database = {
     };
     Functions: {
       cleanup_expired_slot_locks: { Args: never; Returns: undefined };
-      expire_pending_bookings: { Args: never; Returns: undefined };
+      create_notification: {
+        Args: {
+          p_user_id: string;
+          p_type: string;
+          p_title: string;
+          p_message: string;
+          p_metadata?: Record<string, unknown> | null;
+        };
+        Returns: string;
+      };
+      expire_pending_bookings: { Args: never; Returns: string[] };
       generate_venue_slug: {
         Args: { p_city_id: string; p_company_name: string };
         Returns: string;

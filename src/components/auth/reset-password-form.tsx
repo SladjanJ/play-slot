@@ -8,7 +8,7 @@ import { AuthFormCard } from "@/components/auth/auth-form-card";
 import { FieldError } from "@/components/auth/field-error";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
 
@@ -48,12 +48,13 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
       <form action={formAction} noValidate className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="password">{t("newPassword")}</Label>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="new-password"
             aria-invalid={Boolean(state.fieldErrors?.password)}
+            showLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           <FieldError message={state.fieldErrors?.password} />
           {!state.fieldErrors?.password ? (
@@ -63,12 +64,13 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
 
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-          <Input
+          <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
-            type="password"
             autoComplete="new-password"
             aria-invalid={Boolean(state.fieldErrors?.confirmPassword)}
+            showLabel={t("showPassword")}
+            hideLabel={t("hidePassword")}
           />
           <FieldError message={state.fieldErrors?.confirmPassword} />
         </div>

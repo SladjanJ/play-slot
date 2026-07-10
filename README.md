@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PlaySlot
 
-## Getting Started
+Web aplikacija za online rezervaciju fudbalskih termina (MVP).
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router), React 19, TypeScript
+- Supabase (Auth, PostgreSQL, Realtime)
+- shadcn/ui + Tailwind CSS v4
+- next-intl (SR / EN)
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local
+# Fill in Supabase keys and optional RESEND / CRON secrets
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a Supabase project (or use local stack).
+2. Apply migrations from `supabase/migrations/`.
+3. In **Authentication → URL Configuration** (localhost):
+   - Site URL: `http://localhost:3000`
+   - Redirect URLs: `http://localhost:3000/**`, `http://localhost:3000/auth/callback`
 
-## Learn More
+### Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+See `.env.example`. Required:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (server notifications / maintenance)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Optional:
 
-## Deploy on Vercel
+- `RESEND_API_KEY` + `RESEND_FROM_EMAIL` — booking emails
+- `CRON_SECRET` — protects `/api/cron/maintenance`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Scheduled jobs
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Pending booking expiry (24h) and slot-lock cleanup run via:
+
+```
+GET /api/cron/maintenance
+Authorization: Bearer <CRON_SECRET>
+```
+
+On Vercel, `vercel.json` schedules this every 15 minutes when `CRON_SECRET` is set.
+
+For local dev, call the endpoint manually or use an external cron.
+
+## Manual testing
+
+Create test accounts in Supabase Auth (email verification required):
+
+| Role   | Suggested email     |
+|--------|-----------------------|
+| Host   | `host@test.com`       |
+| Player | `player@test.com`     |
+
+Use any password meeting the policy (min 8 chars, 1 number).
+
+## Docs
+
+- [`docs/PRD.md`](docs/PRD.md) — product requirements
+- [`docs/Tech.md`](docs/Tech.md) — architecture
+- [`docs/DB.md`](docs/DB.md) — database schema
+
+## Scripts
+
+```bash
+npm run dev    # development server
+npm run build  # production build
+npm run start  # production server
+```

@@ -9,12 +9,17 @@ import { computeBookingEndAt } from "@/lib/booking/slots";
 import { sameInstant } from "@/lib/booking/timestamps";
 import {
   acquireSlotLockSchema,
+  canBookSlot,
   canCancelBooking,
   cancelBookingSchema,
   createBookingSchema,
   type BookingErrorKey,
   zodIssuesToBookingFieldErrors,
 } from "@/lib/booking/validation";
+import {
+  notifyBookingCancelled,
+  notifyBookingCreated,
+} from "@/lib/notifications/booking-events";
 import { createClient } from "@/lib/supabase/server";
 
 export type BookingActionState = {
@@ -121,6 +126,16 @@ export async function acquireSlotLockAction(
     return { error: await translateError(locale, "invalidSlotCount") };
   }
 
+  const bookCheck = canBookSlot(startAt);
+  if (!bookCheck.allowed) {
+    return {
+      error: await translateError(
+        locale,
+        bookCheck.reason ?? "slotsUnavailable",
+      ),
+    };
+  }
+
   const endAt = computeBookingEndAt(
     startAt,
     slotCount,
@@ -217,6 +232,16 @@ export async function createBookingAction(
     return { error: await translateError(locale, "invalidSlotCount") };
   }
 
+  const bookCheck = canBookSlot(startAt);
+  if (!bookCheck.allowed) {
+    return {
+      error: await translateError(
+        locale,
+        bookCheck.reason ?? "slotsUnavailable",
+      ),
+    };
+  }
+
   const endAt = computeBookingEndAt(
     startAt,
     slotCount,
@@ -264,8 +289,11 @@ export async function createBookingAction(
 
   await supabase.from("slot_locks").delete().eq("id", activeLock.id);
 
+  void notifyBookingCreated(booking.id, locale);
+
   revalidatePath(`/venues/${venue.slug}`);
   revalidatePath("/bookings");
+  revalidatePath("/notifications");
 
   const t = await getTranslations({ locale, namespace: "booking" });
   redirect(`/bookings?success=${encodeURIComponent(t(status === "confirmed" ? "confirmedSuccess" : "pendingSuccess"))}`);
@@ -332,11 +360,15 @@ export async function cancelBookingAction(
     return { error: await translateError(locale, "bookingFailed") };
   }
 
+  await notifyBookingCancelled(bookingId, locale, cancellationReason);
+
   const venue = booking.venues as { slug: string } | null;
   if (venue?.slug) {
     revalidatePath(`/venues/${venue.slug}`);
   }
   revalidatePath("/bookings");
+  revalidatePath("/notifications");
+  revalidatePath("/host/dashboard");
 
   const t = await getTranslations({ locale, namespace: "booking" });
   return { success: t("cancelSuccess") };

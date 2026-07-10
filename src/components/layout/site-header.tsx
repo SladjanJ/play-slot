@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Menu01Icon } from "@hugeicons/core-free-icons";
+import { Menu01Icon, Notification01Icon } from "@hugeicons/core-free-icons";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { HeaderSearch } from "@/components/layout/header-search";
+import { HostUserMenu } from "@/components/layout/host-user-menu";
 import { Link as I18nLink } from "@/i18n/navigation";
 import Link from "next/link";
 import { PlaySlotLogo } from "@/components/layout/playslot-logo";
@@ -21,9 +23,10 @@ import {
 type SiteHeaderProps = {
   locale: string;
   user?: { firstName: string; role?: string } | null;
+  unreadNotifications?: number;
 };
 
-export function SiteHeader({ locale, user }: SiteHeaderProps) {
+export function SiteHeader({ locale, user, unreadNotifications = 0 }: SiteHeaderProps) {
   const t = useTranslations("common");
   const tPlayer = useTranslations("player.nav");
   const tHost = useTranslations("host.nav");
@@ -32,14 +35,25 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
   const isPlayer = user?.role === "player";
   const isHost = user?.role === "host";
 
+  const showSearch = !isHost;
+
+  const notificationsBell = isAuthenticated ? (
+    <Link
+      href="/notifications"
+      className="relative inline-flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+      aria-label={t("notifications")}
+    >
+      <HugeiconsIcon icon={Notification01Icon} strokeWidth={2} className="size-4" />
+      {unreadNotifications > 0 ? (
+        <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+          {unreadNotifications > 9 ? "9+" : unreadNotifications}
+        </span>
+      ) : null}
+    </Link>
+  ) : null;
+
   const playerNavDesktop = isPlayer ? (
     <nav className="hidden items-center gap-4 md:flex">
-      <Link
-        href="/search"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        {tPlayer("search")}
-      </Link>
       <Link
         href="/bookings"
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -56,12 +70,6 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         {tHost("dashboard")}
-      </Link>
-      <Link
-        href="/host/settings"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-      >
-        {tHost("settings")}
       </Link>
     </nav>
   ) : null;
@@ -88,13 +96,6 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
   const playerNavMobile = isPlayer ? (
     <nav className="flex flex-col gap-2 px-4">
       <Link
-        href="/search"
-        onClick={() => setOpen(false)}
-        className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
-      >
-        {tPlayer("search")}
-      </Link>
-      <Link
         href="/bookings"
         onClick={() => setOpen(false)}
         className="rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
@@ -104,16 +105,30 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
     </nav>
   ) : null;
 
+  const userNameDisplay =
+    user?.firstName && isHost ? (
+      <HostUserMenu firstName={user.firstName} />
+    ) : user?.firstName ? (
+      <span className="text-sm text-muted-foreground">{user.firstName}</span>
+    ) : null;
+
+  const userActionsDesktop = isAuthenticated ? (
+    <div className="flex items-center gap-2.5">
+      {userNameDisplay}
+      {notificationsBell}
+      <LogoutButton
+        locale={locale}
+        variant="outline"
+        className="h-9 px-4 transition-colors hover:bg-muted/80"
+      />
+    </div>
+  ) : null;
+
   const authNavDesktop = isAuthenticated ? (
     <div className="flex items-center gap-4">
       {playerNavDesktop}
       {hostNavDesktop}
-      {user?.firstName ? (
-        <span className="hidden text-sm text-muted-foreground lg:inline">
-          {user.firstName}
-        </span>
-      ) : null}
-      <LogoutButton locale={locale} variant="outline" className="h-9 px-4" />
+      {userActionsDesktop}
     </div>
   ) : (
     <>
@@ -136,11 +151,18 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
     <div className="flex flex-col gap-2">
       {playerNavMobile}
       {hostNavMobile}
-      <div className="flex flex-col gap-2 px-4">
+      <div className="flex items-center gap-3 px-4 py-2">
         {user?.firstName ? (
-          <p className="px-3 py-2 text-sm text-muted-foreground">{user.firstName}</p>
-        ) : null}
-        <LogoutButton locale={locale} variant="outline" className="h-10 w-full" />
+          <span className="flex-1 text-sm text-muted-foreground">{user.firstName}</span>
+        ) : (
+          <span className="flex-1" />
+        )}
+        {notificationsBell}
+        <LogoutButton
+          locale={locale}
+          variant="outline"
+          className="h-9 shrink-0 px-4 transition-colors hover:bg-muted/80"
+        />
       </div>
     </div>
   ) : (
@@ -173,9 +195,13 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
         </I18nLink>
 
         <div className="absolute left-1/2 hidden -translate-x-1/2 md:block">
-          <span className="font-heading text-xl font-semibold tracking-tight">
-            {t("appName")}
-          </span>
+          {showSearch ? (
+            <HeaderSearch className="w-[min(100%,20rem)]" />
+          ) : (
+            <span className="font-heading text-xl font-semibold tracking-tight">
+              {t("appName")}
+            </span>
+          )}
         </div>
 
         <nav className="hidden items-center gap-6 md:flex">{authNavDesktop}</nav>
@@ -197,6 +223,11 @@ export function SiteHeader({ locale, user }: SiteHeaderProps) {
             <SheetHeader>
               <SheetTitle>{t("appName")}</SheetTitle>
             </SheetHeader>
+            {showSearch ? (
+              <div className="px-4 pb-2">
+                <HeaderSearch />
+              </div>
+            ) : null}
             {authNavMobile}
           </SheetContent>
         </Sheet>

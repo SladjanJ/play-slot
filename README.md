@@ -177,7 +177,7 @@ src/
 | `/host/dashboard` | Host | Calendar + pending panel |
 | `/host/settings` | Host | Venue settings |
 | `/api/health/supabase` | Public | DB connectivity check |
-| `/api/cron/maintenance` | Cron secret | Expire pending + cleanup locks |
+| `/api/cron/maintenance` | POST + cron secret | Expire pending + cleanup locks |
 
 ---
 
@@ -221,7 +221,7 @@ Copy `.env.example` to `.env.local`. **Never commit `.env.local`.**
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon (public) key — safe in browser; RLS protects data |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only key for notifications and maintenance (**never expose to client**) |
 | `NEXT_PUBLIC_DEFAULT_LOCALE` | No | Default locale (`sr` or `en`); defaults to `sr` |
-| `CRON_SECRET` | Recommended | Bearer token for `/api/cron/maintenance` |
+| `CRON_SECRET` | Yes (prod) | Bearer token for `POST /api/cron/maintenance` (min. 32 chars); set before configuring external scheduler |
 | `RESEND_API_KEY` | Optional | Enables booking notification emails |
 | `RESEND_FROM_EMAIL` | Optional | Sender address for Resend |
 
@@ -292,18 +292,22 @@ Full schema details: [`docs/DB.md`](docs/DB.md).
 
 ## Scheduled maintenance
 
-The endpoint `GET /api/cron/maintenance` (protected by `Authorization: Bearer <CRON_SECRET>`):
+The endpoint `POST /api/cron/maintenance` (protected by `Authorization: Bearer <CRON_SECRET>`):
 
 1. Deletes expired slot locks
 2. Expires pending bookings older than 24 hours
 3. Sends in-app + email notifications for expired bookings
 
-**Vercel:** `vercel.json` runs this every 15 minutes when deployed with `CRON_SECRET` set.
+**Production (Vercel Hobby):** Vercel Cron is not used (Hobby plan allows at most one cron per day). A free external scheduler calls this endpoint every 15 minutes — see [Post-deploy: external scheduler](#post-deploy-external-scheduler).
+
+**Supabase pg_cron (optional):** If the `pg_cron` extension is enabled, migration `20260710170000` also schedules `cleanup_expired_slot_locks` every 5 minutes. Pending expiry and notifications always run via the API endpoint above.
+
+**Security:** `POST` only (other methods return 404). Wrong or missing token returns 404 (endpoint is hidden). Per-IP rate limits block brute-force and abuse. `CRON_SECRET` must be at least 32 characters.
 
 **Local dev:** trigger manually:
 
 ```bash
-curl -H "Authorization: Bearer YOUR_CRON_SECRET" http://localhost:3000/api/cron/maintenance
+curl -X POST -H "Authorization: Bearer YOUR_CRON_SECRET" http://localhost:3000/api/cron/maintenance
 ```
 
 ---
@@ -313,8 +317,31 @@ curl -H "Authorization: Bearer YOUR_CRON_SECRET" http://localhost:3000/api/cron/
 ### Vercel (frontend)
 
 1. Import the Git repository into [Vercel](https://vercel.com)
-2. Set all environment variables from [Environment variables](#environment-variables)
-3. Deploy — Vercel Cron will use `vercel.json` automatically
+2. Set all environment variables from [Environment variables](#environment-variables) — include `CRON_SECRET` (min. 32 characters)
+3. Deploy (no `vercel.json` cron config; works on Hobby plan)
+4. Configure the [external scheduler](#post-deploy-external-scheduler) after the first successful deploy
+
+### Post-deploy: external scheduler
+
+Use a free HTTP cron service (recommended: [cron-job.org](https://cron-job.org)) to hit your maintenance endpoint every **15 minutes**.
+
+1. Generate a secret (minimum 32 characters):
+   ```bash
+   openssl rand -hex 32
+   ```
+2. In **Vercel → Project → Settings → Environment Variables**, set `CRON_SECRET` to that value for Production (and Preview if you want maintenance on preview deployments).
+3. Redeploy if you added or changed `CRON_SECRET` after the first deploy.
+4. At [cron-job.org](https://cron-job.org) (free account):
+   - **Create cronjob**
+   - **Title:** PlaySlot maintenance
+   - **URL:** `https://<your-vercel-domain>/api/cron/maintenance`
+   - **Schedule:** every 15 minutes (`*/15 * * * *`)
+   - **Request method:** POST
+   - **Headers:** add `Authorization` = `Bearer <your-CRON_SECRET>`
+   - Save and enable the job
+5. Verify: the cron service should report HTTP **200** with JSON like `{"ok":true,"expiredCount":0,...}`. A **404** means wrong method or Bearer token; **429** means rate limit (wait and retry); **503** means `CRON_SECRET` is missing or too short on Vercel.
+
+Alternatives with the same setup: [EasyCron](https://www.easycron.com), or a GitHub Actions `schedule` workflow that `curl -X POST`s the endpoint with the Bearer header.
 
 ### Supabase (backend)
 
@@ -354,7 +381,7 @@ Password policy: minimum 8 characters, at least one number.
 
 - **RLS** enabled on all application tables
 - **Service role key** used only in server code (`src/lib/supabase/admin.ts`); never prefixed with `NEXT_PUBLIC_`
-- **Cron endpoint** requires `CRON_SECRET`
+- **Cron endpoint** requires `POST` + `Authorization: Bearer <CRON_SECRET>` (min. 32 chars); wrong auth returns 404; per-IP rate limits on `/api/cron/maintenance`
 - **`.gitignore`** excludes `.env.local`, `.cursor/mcp.json`, certificates, and database dumps
 - Input validation via Zod on all forms and server actions
 

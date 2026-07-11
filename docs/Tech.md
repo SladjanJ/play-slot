@@ -134,12 +134,15 @@ Output: available slot grid for date range
 
 ### Pending expiry
 
-- Scheduled Edge Function or pg_cron: every 15 min
+- External scheduler (e.g. [cron-job.org](https://cron-job.org)) sends `POST /api/cron/maintenance` every 15 min (Hobby Vercel has no built-in cron)
+- Endpoint runs `expire_pending_bookings()` then sends in-app + email notifications for each expired booking
 - `UPDATE bookings SET status = 'expired' WHERE status = 'pending' AND created_at < now() - interval '24 hours'`
 
 ### Lock cleanup
 
-- Scheduled job: `DELETE FROM slot_locks WHERE expires_at < now()`
+- Same `/api/cron/maintenance` call (every 15 min)
+- Optional bonus: Supabase `pg_cron` runs `cleanup_expired_slot_locks()` every 5 min when the extension is enabled
+- `DELETE FROM slot_locks WHERE expires_at < now()`
 
 ---
 

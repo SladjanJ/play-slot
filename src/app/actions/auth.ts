@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { redirect as nextRedirect } from "next/navigation";
 
+import { resolvePostAuthPath } from "@/lib/auth/redirect";
 import { sanitizeNextPath } from "@/lib/auth/routes";
 import {
   type AuthErrorKey,
@@ -80,22 +81,14 @@ function parseRegisterForm(formData: FormData) {
   };
 }
 
-function redirectAfterAuth(
-  locale: string,
+async function redirectAfterAuth(
+  userId: string,
   role: string | undefined,
   next: string | null,
 ) {
-  const safeNext = sanitizeNextPath(next);
-
-  if (safeNext) {
-    nextRedirect(safeNext);
-  }
-
-  if (role === "host") {
-    nextRedirect("/host/setup");
-  }
-
-  nextRedirect("/search");
+  const supabase = await createClient();
+  const destination = await resolvePostAuthPath(supabase, userId, role, next);
+  nextRedirect(destination);
 }
 
 export async function signUpAction(
@@ -203,7 +196,7 @@ export async function signInAction(
     .eq("id", user!.id)
     .single();
 
-  redirectAfterAuth(locale, profile?.role, next);
+  redirectAfterAuth(user!.id, profile?.role, next);
   return { error: await translateError(locale, "generic") };
 }
 
@@ -357,6 +350,6 @@ export async function checkVerificationAction(locale: string) {
     .eq("id", user.id)
     .single();
 
-  redirectAfterAuth(locale, profile?.role, null);
+  await redirectAfterAuth(user.id, profile?.role, null);
   return { verified: false as const };
 }

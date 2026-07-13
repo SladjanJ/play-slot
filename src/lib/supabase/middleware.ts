@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { resolvePostAuthPath } from "@/lib/auth/redirect";
 import {
   isAuthPage,
   isHostPath,
@@ -90,16 +91,42 @@ export async function updateSession(
     return supabaseResponse;
   }
 
-  if (onAuthPage && !onVerifyEmail && !onResetPassword) {
+  if (onVerifyEmail) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
+    const destination = await resolvePostAuthPath(
+      supabase,
+      user.id,
+      profile?.role,
+      null,
+    );
+
     const url = request.nextUrl.clone();
-    url.pathname =
-      profile?.role === "host" ? "/host/setup" : "/search";
+    url.pathname = destination;
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  if (onAuthPage && !onResetPassword) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const destination = await resolvePostAuthPath(
+      supabase,
+      user.id,
+      profile?.role,
+      null,
+    );
+
+    const url = request.nextUrl.clone();
+    url.pathname = destination;
     url.search = "";
     return NextResponse.redirect(url);
   }
